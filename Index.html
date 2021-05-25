@@ -1,0 +1,80 @@
+<html>
+<head>
+    <title>聊天室</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+
+<body>
+  <div style="margin-bottom:5px;">
+    room no: <input type="text"  id="txtRoomNo" value="8888"/> <button id="btnJoin">join room</button> <button id="btnLeave">leave room</button>
+</div>
+<div style="margin-bottom:5px;">
+    nick name: <input type="text" id="txtNickName" value="batman" /> 
+</div>
+<div style="height:300px;width:600px">
+    <textarea style="height:100%;width:100%" id="msgList"></textarea>
+    <div style="text-align: right">
+        <input type="text" id="txtMsg" value="" />  <button id="btnSend">send</button>
+    </div>
+</div>
+<script>
+var server = 'ws://localhost:58929'; //如果开启了https则这里是wss
+
+var WEB_SOCKET = new WebSocket(server + '/ws');
+
+WEB_SOCKET.onopen = function (evt) {
+    console.log('Connection open ...');
+    $('#msgList').val('websocket connection opened .');
+};
+
+WEB_SOCKET.onmessage = function (evt) {
+    console.log('Received Message: ' + evt.data);
+    if (evt.data) {
+        var content = $('#msgList').val();
+        content = content + '\r\n' + evt.data;
+
+        $('#msgList').val(content);
+    }
+};
+
+WEB_SOCKET.onclose = function (evt) {
+    console.log('Connection closed.');
+};
+
+$('#btnJoin').on('click', function () {
+    var roomNo = $('#txtRoomNo').val();
+    var nick = $('#txtNickName').val();
+    if (roomNo) {
+        var msg = {
+            action: 'join',
+            msg: roomNo,
+            nick: nick
+        };
+        WEB_SOCKET.send(JSON.stringify(msg));
+    }
+});
+
+$('#btnSend').on('click', function () {
+    var message = $('#txtMsg').val();
+    var nick = $('#txtNickName').val();
+    if (message) {
+        WEB_SOCKET.send(JSON.stringify({
+            action: 'send_to_room',
+            msg: message,
+            nick: nick
+        }));
+    }
+});
+
+$('#btnLeave').on('click', function () {
+    var nick = $('#txtNickName').val();
+    var msg = {
+        action: 'leave',
+        msg: '',
+        nick: nick
+    };
+    WEB_SOCKET.send(JSON.stringify(msg));
+});
+</script>
+</body>
+</html>
