@@ -79,12 +79,13 @@ namespace TheBestTxt.SocketAbout.Web.Test
         private async Task MessageRoute(Message message)
         {
             var client = WebsocketClientCollection.Get(message.SendClientId);
-            var clients = WebsocketClientCollection.Gets(client.RoomNo);
+
             switch (message.Action)
             {
                 case "join":
                     client.RoomNo = message.Msg;
-                    clients.ForEach(c =>
+                    var roomClients = WebsocketClientCollection.Gets(client.RoomNo);
+                    roomClients.ForEach(c =>
                     {
                         c.SendMessageAsync($"{message.Nick} join room {client.RoomNo} success .");
                     });
@@ -94,6 +95,7 @@ namespace TheBestTxt.SocketAbout.Web.Test
                     {
                         break;
                     }
+                    var clients = WebsocketClientCollection.Gets(client.RoomNo);
                     clients.ForEach(c =>
                     {
                         c.SendMessageAsync(message.Nick + " : " + message.Msg).Wait();
